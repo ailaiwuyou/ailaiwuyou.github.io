@@ -217,9 +217,24 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2021-05-16 16:58:46 / 修改时间：17:46:05" itemprop="dateCreated datePublished" datetime="2021-05-16T16:58:46+08:00">2021-05-16</time>
+              <time title="创建时间：2021-05-16 16:58:46" itemprop="dateCreated datePublished" datetime="2021-05-16T16:58:46+08:00">2021-05-16</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-05-25 14:36:48" itemprop="dateModified" datetime="2021-05-25T14:36:48+08:00">2021-05-25</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%8D%E5%8A%A1%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">服务端</span></a>
+                </span>
             </span>
 
           
@@ -242,14 +257,14 @@
                 <i class="far fa-file-word"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1.7k</span>
+              <span>1.3k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="far fa-clock"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>2 分钟</span>
+              <span>1 分钟</span>
             </span>
 
         </div>
@@ -261,23 +276,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>在使用mongodb的过程中经常遇到这样的报错，child process failed, exited with error number 48</p>
-<p>1、删除data目录下的mongod.lock;<br>2、ps -ef | grep mongo<br>3、kill -9 端口号（找到mongodb.conf的进程，然后删除）<br>4、./bin/mongod -f ./conf/mongod.conf</p>
-<p>mongodb自动启动</p>
-<ol>
-<li><p>编写配置文件，主要指定数据库文件，日志文件，以及一些启动参数<br>在mongodb下新建data文件夹，以及子文件夹db，logs， 在logs中新建mongodb.log日志文件，其中db文件夹用来存储数据库文件，logs用来存储日志文件<br>在mongodb-3.2.10/bin/目录下新建mongodb.conf配置文件，内容如下:<br>dbpath=/usr/context/mongodb/data/db/<br>logpath=/usr/context/mongodb/data/log/mongodb.log<br>logappend=true<br>port=27017<br>fork=true<br>nohttpinterface=true<br>auth=true<br>dbpath:数据库文件路径<br>logpath:日志文件路径<br>logappend:是否追加日志<br>port:端口<br>fork:是否以后台进程启动<br>auth:是否启动授权认证<br>nohttpinterface:是否支持HTTP形式访问</p>
-</li>
-<li><p>编写自定义服务<br>在/lib/systemd/system/目录下新建mongodb.service文件，内容如下</p>
-<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Description</span>=mongodb</span><br><span class="line">After=network.target remote-fs.target nss-lookup.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Type=forking</span><br><span class="line">ExecStart=<span class="regexp">/usr/</span>local<span class="regexp">/mongodb/</span>bin<span class="regexp">/mongod --config /u</span>sr<span class="regexp">/local/m</span>ongodb/mongodb.conf</span><br><span class="line">ExecReload=<span class="regexp">/bin/</span>kill -s HUP $MAINPID</span><br><span class="line">ExecStop=<span class="regexp">/usr/</span>local<span class="regexp">/mongodb/</span>bin<span class="regexp">/mongod --shutdown --config /u</span>sr<span class="regexp">/local/m</span>ongodb<span class="regexp">/bin/m</span>ongodb.conf</span><br><span class="line">PrivateTmp=<span class="keyword">true</span></span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
-
-<p>Description=mongodb<br>After=network.target remote-fs.target nss-lookup.target  </p>
-<p>[Service]<br>Type=forking<br>ExecStart=/usr/context/mongodb/mongodb-3.2.10/bin/mongod –config /usr/context/mongodb/mongodb-3.2.10/bin/mongodb.conf<br>ExecReload=/bin/kill -s HUP $MAINPID<br>ExecStop=/usr/context/mongodb/mongodb-3.2.10/bin/mongod –shutdown –config /usr/context/mongodb/mongodb-3.2.10/bin/mongodb.conf<br>PrivateTmp=true  </p>
-<p>[Install]<br>WantedBy=multi-user.target<br>设置权限<br>chmod 754 mongodb.service<br>启动关闭服务，设置开机启动<br>#启动服务<br>systemctl start mongodb.service<br>#关闭服务<br>systemctl stop mongodb.service<br>#开机启动<br>systemctl enable mongodb.service</p>
-</li>
-</ol>
-<p>*注意:conf和service文件中设置路径，注意需要设置为绝对路径。</p>
-<p>链接：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/61582f4beff2">https://www.jianshu.com/p/61582f4beff2</a></p>
-
+          <p>mongodb不正确关闭和启动会遇到很多问题，这里做个总结</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/mongodb%E5%90%AF%E5%8A%A8%E4%B8%8E%E5%81%9C%E6%AD%A2.html#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -327,7 +334,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-05-25 11:24:20" itemprop="dateModified" datetime="2021-05-25T11:24:20+08:00">2021-05-25</time>
+                <time title="修改时间：2021-05-25 14:37:06" itemprop="dateModified" datetime="2021-05-25T14:37:06+08:00">2021-05-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -379,16 +386,14 @@
 
       
           <p>vue3.0体验与总结</p>
-<p>vue3.0 typescript类型声明的方法</p>
-<figure class="highlight pf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">declare module <span class="string">&quot;@vue/runtime-core&quot;</span> &#123;</span><br><span class="line">    interface ComponentCustomProperties &#123;</span><br><span class="line">        axios: AxiosStatic;</span><br><span class="line">        <span class="variable">$message</span>: <span class="literal">any</span>;</span><br><span class="line">        <span class="variable">$socket</span>: <span class="literal">any</span>;</span><br><span class="line">        <span class="variable">$notification</span>: <span class="literal">any</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<p>vue3.0 *.vue文件类型的声明方法</p>
-<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span> <span class="built_in">module</span> <span class="string">&quot;*.vue&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">import</span> <span class="keyword">type</span> &#123; DefineComponent &#125; <span class="keyword">from</span> <span class="string">&quot;vue&quot;</span>;</span><br><span class="line">    <span class="keyword">const</span> component: DefineComponent&lt;&#123;&#125;, &#123;&#125;, <span class="built_in">any</span>&gt;;</span><br><span class="line">    <span class="keyword">export</span> <span class="keyword">default</span> component;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-<p>router方法的改变</p>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; createRouter, createWebHistory &#125; <span class="keyword">from</span> &quot;vue-router&quot;;</span><br><span class="line"><span class="keyword">import</span> <span class="keyword">Login</span> <span class="keyword">from</span> &quot;../views/login.vue&quot;;</span><br><span class="line"><span class="keyword">import</span> Main <span class="keyword">from</span> &quot;../views/main.vue&quot;;</span><br><span class="line"><span class="keyword">import</span> Home <span class="keyword">from</span> &quot;../views/home.vue&quot;;</span><br><span class="line"></span><br><span class="line">const routes = [</span><br><span class="line">    &#123; <span class="type">path</span>: &quot;/&quot;, <span class="type">name</span>: &quot;Main&quot;, component: Main, redirect: &quot;/login&quot; &#125;,</span><br><span class="line">    &#123; <span class="type">path</span>: &quot;/login&quot;, <span class="type">name</span>: &quot;Login&quot;, component: <span class="keyword">Login</span> &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="type">path</span>: &quot;/home&quot;,</span><br><span class="line">        <span class="type">name</span>: &quot;Home&quot;,</span><br><span class="line">        component: Home</span><br><span class="line">    &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line">const router = createRouter(&#123;</span><br><span class="line">    history: createWebHistory(),</span><br><span class="line">    routes,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">export <span class="keyword">default</span> router;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/vue3-0%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BB%93.html#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -1344,13 +1349,13 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-count">8</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-count">17</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -1393,7 +1398,7 @@
     <span class="post-meta-item-icon">
       阅读时长 <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">56 分钟</span>
+    <span title="站点阅读时长">55 分钟</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
   </div>

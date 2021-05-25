@@ -96,23 +96,30 @@
   <entry>
     <title>mongodb启动与停止</title>
     <url>/mongodb%E5%90%AF%E5%8A%A8%E4%B8%8E%E5%81%9C%E6%AD%A2.html</url>
-    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>在使用mongodb的过程中经常遇到这样的报错，child process failed, exited with error number 48</p>
+    <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>mongodb不正确关闭和启动会遇到很多问题，这里做个总结</p>
+<span id="more"></span>
+
+<p>在使用mongodb的过程中经常遇到这样的报错，child process failed, exited with error number 48</p>
 <p>1、删除data目录下的mongod.lock;<br>2、ps -ef | grep mongo<br>3、kill -9 端口号（找到mongodb.conf的进程，然后删除）<br>4、./bin/mongod -f ./conf/mongod.conf</p>
 <p>mongodb自动启动</p>
 <ol>
-<li><p>编写配置文件，主要指定数据库文件，日志文件，以及一些启动参数<br>在mongodb下新建data文件夹，以及子文件夹db，logs， 在logs中新建mongodb.log日志文件，其中db文件夹用来存储数据库文件，logs用来存储日志文件<br>在mongodb-3.2.10/bin/目录下新建mongodb.conf配置文件，内容如下:<br>dbpath=/usr/context/mongodb/data/db/<br>logpath=/usr/context/mongodb/data/log/mongodb.log<br>logappend=true<br>port=27017<br>fork=true<br>nohttpinterface=true<br>auth=true<br>dbpath:数据库文件路径<br>logpath:日志文件路径<br>logappend:是否追加日志<br>port:端口<br>fork:是否以后台进程启动<br>auth:是否启动授权认证<br>nohttpinterface:是否支持HTTP形式访问</p>
-</li>
+<li><p>编写配置文件，主要指定数据库文件，日志文件，以及一些启动参数<br>在mongodb下新建data文件夹，以及子文件夹db，logs， 在logs中新建mongodb.log日志文件，其中db文件夹用来存储数据库文件，logs用来存储日志文件<br>在mongodb-3.2.10/bin/目录下新建mongodb.conf配置文件，内容如下:</p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line">dbpath=<span class="regexp">/usr/</span>context<span class="regexp">/mongodb/</span>data<span class="regexp">/db/</span>  </span><br><span class="line">logpath=<span class="regexp">/usr/</span>context<span class="regexp">/mongodb/</span>data<span class="regexp">/log/m</span>ongodb.log  </span><br><span class="line">logappend=<span class="keyword">true</span>  </span><br><span class="line">port=<span class="number">27017</span>  </span><br><span class="line">fork=<span class="keyword">true</span>  </span><br><span class="line">nohttpinterface=<span class="keyword">true</span>  </span><br><span class="line">auth=<span class="keyword">true</span>  </span><br><span class="line">dbpath:数据库文件路径</span><br><span class="line">logpath:日志文件路径</span><br><span class="line">logappend:是否追加日志</span><br><span class="line">port:端口</span><br><span class="line">fork:是否以后台进程启动</span><br><span class="line">auth:是否启动授权认证</span><br><span class="line">nohttpinterface:是否支持HTTP形式访问</span><br></pre></td></tr></table></figure></li>
 <li><p>编写自定义服务<br>在/lib/systemd/system/目录下新建mongodb.service文件，内容如下</p>
 <figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Description</span>=mongodb</span><br><span class="line">After=network.target remote-fs.target nss-lookup.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Type=forking</span><br><span class="line">ExecStart=<span class="regexp">/usr/</span>local<span class="regexp">/mongodb/</span>bin<span class="regexp">/mongod --config /u</span>sr<span class="regexp">/local/m</span>ongodb/mongodb.conf</span><br><span class="line">ExecReload=<span class="regexp">/bin/</span>kill -s HUP $MAINPID</span><br><span class="line">ExecStop=<span class="regexp">/usr/</span>local<span class="regexp">/mongodb/</span>bin<span class="regexp">/mongod --shutdown --config /u</span>sr<span class="regexp">/local/m</span>ongodb<span class="regexp">/bin/m</span>ongodb.conf</span><br><span class="line">PrivateTmp=<span class="keyword">true</span></span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
 
-<p>Description=mongodb<br>After=network.target remote-fs.target nss-lookup.target  </p>
-<p>[Service]<br>Type=forking<br>ExecStart=/usr/context/mongodb/mongodb-3.2.10/bin/mongod –config /usr/context/mongodb/mongodb-3.2.10/bin/mongodb.conf<br>ExecReload=/bin/kill -s HUP $MAINPID<br>ExecStop=/usr/context/mongodb/mongodb-3.2.10/bin/mongod –shutdown –config /usr/context/mongodb/mongodb-3.2.10/bin/mongodb.conf<br>PrivateTmp=true  </p>
-<p>[Install]<br>WantedBy=multi-user.target<br>设置权限<br>chmod 754 mongodb.service<br>启动关闭服务，设置开机启动<br>#启动服务<br>systemctl start mongodb.service<br>#关闭服务<br>systemctl stop mongodb.service<br>#开机启动<br>systemctl enable mongodb.service</p>
+<p>设置权限</p>
+<figure class="highlight vala"><table><tr><td class="code"><pre><span class="line">chmod <span class="number">754</span> mongodb.service</span><br><span class="line">启动关闭服务，设置开机启动</span><br><span class="line"><span class="meta">#启动服务  </span></span><br><span class="line">systemctl start mongodb.service    </span><br><span class="line"><span class="meta">#关闭服务    </span></span><br><span class="line">systemctl stop mongodb.service    </span><br><span class="line"><span class="meta">#开机启动    </span></span><br><span class="line">systemctl enable mongodb.service</span><br><span class="line">*注意:conf和service文件中设置路径，注意需要设置为绝对路径。</span><br></pre></td></tr></table></figure>
 </li>
 </ol>
-<p>*注意:conf和service文件中设置路径，注意需要设置为绝对路径。</p>
-<p>链接：<a href="https://www.jianshu.com/p/61582f4beff2">https://www.jianshu.com/p/61582f4beff2</a></p>
 ]]></content>
+      <categories>
+        <category>服务端</category>
+      </categories>
+      <tags>
+        <tag>linux</tag>
+        <tag>mongodb</tag>
+      </tags>
   </entry>
   <entry>
     <title>vim常用快捷键与命令</title>
@@ -161,6 +168,8 @@
     <title>vue3.0使用总结</title>
     <url>/vue3-0%E4%BD%BF%E7%94%A8%E6%80%BB%E7%BB%93.html</url>
     <content><![CDATA[<link rel="stylesheet" class="aplayer-secondary-style-marker" href="\assets\css\APlayer.min.css"><script src="\assets\js\APlayer.min.js" class="aplayer-secondary-script-marker"></script><script class="meting-secondary-script-marker" src="\assets\js\Meting.min.js"></script><p>vue3.0体验与总结</p>
+<span id="more"></span>
+
 <p>vue3.0 typescript类型声明的方法</p>
 <figure class="highlight pf"><table><tr><td class="code"><pre><span class="line">declare module <span class="string">&quot;@vue/runtime-core&quot;</span> &#123;</span><br><span class="line">    interface ComponentCustomProperties &#123;</span><br><span class="line">        axios: AxiosStatic;</span><br><span class="line">        <span class="variable">$message</span>: <span class="literal">any</span>;</span><br><span class="line">        <span class="variable">$socket</span>: <span class="literal">any</span>;</span><br><span class="line">        <span class="variable">$notification</span>: <span class="literal">any</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
